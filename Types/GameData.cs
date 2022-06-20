@@ -31,6 +31,11 @@ namespace MapAssist.Types
         public Npc LastNpcInteracted;
         public int ProcessId;
 
+        public GameData ShallowCopy()
+        {
+            return (GameData)MemberwiseClone();
+        }
+
         public bool HasGameChanged(GameData other)
         {
             if (other == null) return true;

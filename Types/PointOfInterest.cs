@@ -12,6 +12,7 @@ namespace MapAssist.Types
         public Point Position;
         public PointOfInterestRendering RenderingSettings;
         public PoiType Type;
+        public bool IsQuest = false;
 
         public bool PoiMatchesPortal(UnitObject[] gameDataObjectList, Difficulty difficulty)
         {

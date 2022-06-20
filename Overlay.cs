@@ -4,6 +4,7 @@ using MapAssist.Helpers;
 using MapAssist.Settings;
 using MapAssist.Structs;
 using MapAssist.Types;
+using PrroBot;
 using System;
 using System.Linq;
 using System.Windows.Forms;
@@ -26,11 +27,8 @@ namespace MapAssist
         private static readonly object _lock = new object();
         private bool frameDone = true;
 
-        public Overlay(ConfigEditor configEditor)
-        {
+        public Overlay(GameDataReader reader, ConfigEditor configEditor)        {
             _configEditor = configEditor;
-            _gameDataReader = new GameDataReader();
-
             GameOverlay.TimerService.EnableHighPrecisionTimers();
 
             var gfx = new Graphics() { MeasureFPS = true };
@@ -47,8 +45,6 @@ namespace MapAssist
         {
             if (disposed) return;
 
-            if (!frameDone) return;
-            frameDone = false;
 
             var gfx = e.Graphics;
 
@@ -60,13 +56,19 @@ namespace MapAssist
                     {
                         return (MapAssistConfiguration.Loaded.RenderingConfiguration.Position, MapAssistConfiguration.Loaded.RenderingConfiguration.OverlayMode);
                     }
+                    var gameData = Core.GetGameData();
+                    var areaData = Core.GetAreaData();
 
-                    var (gameData, areaData, changed) = _gameDataReader.Get();
+                    if (gameData == null || areaData == null) return;
+                    
+                    var changed = gameData.HasMapChanged(_gameData) && gameData.Area != Area.None;                    
+                    
                     _gameData = gameData;
 
                     if (changed || _lastMapConfiguration != MapConfiguration())
                     {
                         _compositor.SetArea(areaData);
+                        Pathing.ClearCurrentPath();
                         _lastMapConfiguration = MapConfiguration();
                     }
 
@@ -87,7 +89,8 @@ namespace MapAssist
                                 Array.Exists(MapAssistConfiguration.Loaded.HiddenAreas, area => area == _gameData.Area) ||
                                 _gameData.Area == Area.None ||
                                 gfx.Width == 1 ||
-                                gfx.Height == 1;
+                            gfx.Height == 1 ||
+                            Core.LastGameDataWasNull();
 
                             var size = MapAssistConfiguration.Loaded.RenderingConfiguration.Size;
                             var height = MapAssistConfiguration.Loaded.RenderingConfiguration.OverlayMode ? size / 2 : size;
@@ -116,8 +119,10 @@ namespace MapAssist
 
                                 _compositor.DrawBuffs(gfx, _mouseRelativePos);
                                 _compositor.DrawMonsterBar(gfx);
+                                _compositor.DrawCurrentPath(gfx);
                             }
-
+                            if(BotConfig.ShowDebugInfo) _compositor.DrawDebugInfo(gfx);
+                            _compositor.DrawBotStats(gfx);
                             _compositor.DrawPlayerInfo(gfx);
 
                             var gameInfoAnchor = GameInfoAnchor(MapAssistConfiguration.Loaded.GameInfo.Position);
@@ -138,7 +143,6 @@ namespace MapAssist
                 _log.Error(ex);
             }
 
-            frameDone = true;
         }
 
         public void Run()
@@ -221,6 +225,7 @@ namespace MapAssist
                     }
                     else if (keys == new Hotkey("Down"))
                     {
+                        //ItemExport.ExportPlayerInventory(_gameData.PlayerUnit, _gameData.AllItems);
                         MapAssistConfiguration.Loaded.RenderingConfiguration.Offset = MapAssistConfiguration.Loaded.RenderingConfiguration.Offset.Add(0, -offsetMoveBy);
                     }
                     else if (keys == new Hotkey("Left"))

@@ -1,6 +1,7 @@
 ﻿using MapAssist.Helpers;
 using MapAssist.Structs;
 using System;
+using System.Text;
 
 namespace MapAssist.Types
 {
@@ -52,5 +53,16 @@ namespace MapAssist.Types
         public bool IsArmorWeapRack => UnitType == UnitType.Object && ObjectData.pObjectTxt != IntPtr.Zero && Struct.Mode == 0 && Chest.ArmorWeapRacks.Contains(GameObject);
 
         public override string HashString => GameObject + "/" + Position.X + "/" + Position.Y;
+
+        public override string ToString()
+        {
+            var name = Enum.GetName(typeof(GameObject), GameObject);
+            var isPortal = IsPortal;
+            var result = "Name: " + name;
+            result += ", IsPortal: " + isPortal;
+            result += ", UnitType: " + UnitType;
+            result += ", Owner: " + Encoding.UTF8.GetString(ObjectData.Owner).TrimEnd((char)0);
+            return result;
+        }
     }
 }

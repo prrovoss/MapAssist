@@ -47,6 +47,10 @@ namespace MapAssist.Types
 
         private List<Resist> GetImmunities()
         {
+            var immunities = new List<Resist>();
+
+            if(Stats == null) return immunities;
+
             Stats.TryGetValue(Types.Stats.Stat.DamageReduced, out var resistanceDamage);
             Stats.TryGetValue(Types.Stats.Stat.MagicResist, out var resistanceMagic);
             Stats.TryGetValue(Types.Stats.Stat.FireResist, out var resistanceFire);
@@ -64,7 +68,6 @@ namespace MapAssist.Types
                 resistancePoison
             };
 
-            var immunities = new List<Resist>();
 
             for (var i = 0; i < 6; i++)
             {

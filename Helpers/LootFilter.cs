@@ -23,14 +23,14 @@ namespace MapAssist.Helpers
             // So we know that simply having the name match means we can return true
             if (matches.Any(kv => kv.Value == null))
             {
-                return (!item.IsAnyPlayerHolding, null);
+                return (true, null);
             }
 
             // Scan the list of rules
             foreach (var rule in matches.SelectMany(kv => kv.Value))
             {
-                // Skip generic unid rules for identified items on ground or in inventory
-                if (item.IsIdentified && (item.IsDropped || item.IsAnyPlayerHolding) && rule.TargetsUnidItem()) continue;
+                // Skip generic unid rules for identified items
+                //if (item.IsIdentified && (item.IsDropped || item.IsAnyPlayerHolding) && rule.TargetsUnidItem()) continue;
 
                 if (item.IsInStore && !rule.CheckVendor) continue;
 

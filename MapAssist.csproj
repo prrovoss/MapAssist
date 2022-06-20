@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0"
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -108,6 +107,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PrroBot\BotConfig.cs" />
+    <Compile Include="PrroBot\Builds\Build.cs" />
+    <Compile Include="PrroBot\Builds\Hammerdin.cs" />
+    <Compile Include="PrroBot\Core.cs" />
+    <Compile Include="PrroBot\GameInteraction\Input.cs" />
+    <Compile Include="PrroBot\GameInteraction\Lifeguard.cs" />
+    <Compile Include="PrroBot\Runs\Andariel.cs" />
+    <Compile Include="PrroBot\Runs\Countess.cs" />
+    <Compile Include="PrroBot\Runs\Diablo.cs" />
+    <Compile Include="PrroBot\Runs\Nihlathak.cs" />
+    <Compile Include="PrroBot\Runs\Run.cs" />
+    <Compile Include="PrroBot\Runs\Mephisto.cs" />
+    <Compile Include="PrroBot\Runs\Summoner.cs" />
+    <Compile Include="PrroBot\BotStats.cs" />
     <Compile Include="Forms\AddAreaForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -120,6 +133,12 @@
     <Compile Include="Forms\ConfigEditor.Designer.cs">
       <DependentUpon>ConfigEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="PrroBot\PrroBot.cs" />
+    <Compile Include="PrroBot\GameInteraction\Common.cs" />
+    <Compile Include="PrroBot\Inventory.cs" />
+    <Compile Include="PrroBot\GameInteraction\Movement.cs" />
+    <Compile Include="PrroBot\GameInteraction\Town.cs" />
+    <Compile Include="PrroBot\Pathing.cs" />
     <Compile Include="Files\ConfigurationParser.cs" />
     <Compile Include="Files\CRC32.cs" />
     <Compile Include="Files\FileManager.cs" />
@@ -178,7 +197,9 @@
     <Compile Include="Types\ItemsExport.cs" />
     <Compile Include="Types\Locale.cs" />
     <Compile Include="Types\Items.cs" />
+    <Compile Include="Types\Mode.cs" />
     <Compile Include="Types\Missile.cs" />
+    <Compile Include="Types\PotionType.cs" />
     <Compile Include="Types\Roster.cs" />
     <Compile Include="Types\MapSeed.cs" />
     <Compile Include="Types\Session.cs" />
@@ -250,6 +271,9 @@
     </PackageReference>
     <PackageReference Include="YamlDotNet">
       <Version>11.2.1</Version>
+    </PackageReference>
+    <PackageReference Include="RoyT.AStar">
+      <Version>3.0.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

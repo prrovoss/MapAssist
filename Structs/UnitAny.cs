@@ -10,7 +10,7 @@ namespace MapAssist.Structs
         [FieldOffset(0x00)] public UnitType UnitType;
         [FieldOffset(0x04)] public uint TxtFileNo;
         [FieldOffset(0x08)] public uint UnitId;
-        [FieldOffset(0x0C)] public uint Mode;
+        [FieldOffset(0x0C)] public Mode Mode;
         [FieldOffset(0x10)] public IntPtr pUnitData;
         [FieldOffset(0x20)] public IntPtr pAct;
         [FieldOffset(0x38)] public IntPtr pPath;

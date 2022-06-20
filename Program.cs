@@ -4,6 +4,7 @@ using MapAssist.Helpers;
 using MapAssist.Settings;
 using NLog;
 using NLog.Config;
+using PrroBot;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -31,7 +32,10 @@ namespace MapAssist
         private static Overlay overlay;
         private static BackgroundWorker backWorkOverlay = new BackgroundWorker();
         private static IKeyboardMouseEvents globalHook = Hook.GlobalEvents();
+        private static GameDataReader _gameDataReader;
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+
+        private static Core core;
 
         /// <summary>
         /// The main entry point for the application.
@@ -127,9 +131,13 @@ namespace MapAssist
                 {
                     if (overlay != null)
                     {
-                        overlay.KeyDownHandler(sender, args);
+                        //overlay.KeyDownHandler(sender, args);
                     }
+
+                    PrroBot.PrroBot.KeyDownHandler(sender, args);
                 };
+
+                _gameDataReader = new GameDataReader();
 
                 globalHook.MouseMove += (sender, args) =>
                 {
@@ -154,6 +162,10 @@ namespace MapAssist
                 };
 
                 GameManager.MonitorForegroundWindow();
+
+                    core = new Core(_gameDataReader);
+                    var coreThread = new Thread(new ThreadStart(core.Start));
+                    coreThread.Start();
 
                 Application.Run();
             }
@@ -194,7 +206,7 @@ namespace MapAssist
 
         public static void RunOverlay(object sender, DoWorkEventArgs e)
         {
-            using (overlay = new Overlay(configEditor))
+            using (overlay = new Overlay(_gameDataReader, configEditor))
             {
                 overlay.Run();
             }

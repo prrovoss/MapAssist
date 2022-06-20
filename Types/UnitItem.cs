@@ -198,5 +198,6 @@ namespace MapAssist.Types
         }
 
         public override string HashString => Item + "/" + Position.X + "/" + Position.Y;
+
     }
 }

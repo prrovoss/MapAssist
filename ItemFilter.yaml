@@ -75,25 +75,10 @@ Ring:
   # The rings below have stats that are only possible on identified items, so these rules
   # will alert you when a matching item is identified by you or picked up as identified
   - Qualities: magic
-    Min Area Level: 85
-  - Qualities: magic
+    Faster Cast Rate: 10
+    Max Mana: 120
     Magic Find: 40
-  - Qualities: magic
-    Faster Cast Rate: 10
-    Max Mana: 120
-  - Qualities: magic
-    Magic Find: 15
-    Max Mana: 120
-  - Qualities: magic
-    Faster Cast Rate: 10
     Sum Resist: 30
-  - Qualities: magic
-    Magic Find: 15
-    Sum Resist: 30
-  - Qualities: rare
-    Faster Cast Rate: 10
-    Max Mana: 80
-    Sum Resist: 40
   - Qualities: unique # SoJ or BK ring
     All Skills: 1
 
@@ -192,7 +177,7 @@ Jewel:
 Small Charm:
   - Qualities: [magic, unique]
 Large Charm:
-  - Qualities: unique
+  - Qualities: [magic, unique]
 Grand Charm:
   - Qualities: [magic, unique]
 Key of Terror:
@@ -275,13 +260,6 @@ Cham Rune:
 Zod Rune:
 
 ### Gems
-Flawless Ruby:
-Flawless Sapphire:
-Flawless Emerald:
-Flawless Amethyst:
-Flawless Diamond:
-Flawless Topaz:
-Flawless Skull:
 Perfect Ruby:
 Perfect Emerald:
 Perfect Sapphire:

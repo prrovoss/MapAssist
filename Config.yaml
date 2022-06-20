@@ -82,6 +82,10 @@ MapConfiguration:
     LabelFontSize: 14
     LabelFont: Formal 436
     LabelTextShadow: true
+  CurrentPath:
+    LineColor: White
+    LineThickness: 2
+    ArrowHeadSize: 10
   PreviousArea:
     IconColor: Violet
     IconShape: Square

@@ -1,3 +1,4 @@
+using GameOverlay.Drawing;
 using MapAssist.Settings;
 using MapAssist.Types;
 using System;
@@ -21,6 +22,25 @@ namespace MapAssist.Helpers
 
         private static bool _firstMemoryRead = true;
         private static bool _errorThrown = false;
+
+        public static UnitPlayer GetCurrentPlayerUnit()
+        {
+            var rawPlayerUnits = GetUnits<UnitPlayer>(UnitType.Player).Select(x => x.Update()).Where(x => x != null).ToArray();
+            return rawPlayerUnits.FirstOrDefault(x => x.IsPlayer && x.IsPlayerUnit);
+        }
+
+        public static Structs.HoverData GetCurrentHoverData()
+        {
+            var result = new Structs.HoverData();
+            result.UnitType = (UnitType)0xFF;
+
+            var processContext = GameManager.GetProcessContext();
+            if (processContext == null)
+            {
+                return result;
+            }
+            return processContext.Read<Structs.HoverData>(GameManager.LastHoverDataOffset);
+        }
 
         public static GameData GetGameData()
         {
@@ -82,10 +102,7 @@ namespace MapAssist.Helpers
 
                 if (playerUnit == null)
                 {
-                    if (_errorThrown) return null;
-
-                    _errorThrown = true;
-                    throw new Exception("Player unit not found.");
+                    return null;
                 }
                 _errorThrown = false;
 
@@ -100,10 +117,7 @@ namespace MapAssist.Helpers
 
                 if (!levelId.IsValid())
                 {
-                    if (_errorThrown) return null;
-
-                    _errorThrown = true;
-                    throw new Exception("Level id out of bounds.");
+                    return null;
                 }
 
                 if (!MapSeeds.TryGetValue(_currentProcessId, out var _mapSeedData))
@@ -138,10 +152,7 @@ namespace MapAssist.Helpers
                 {
                     if (mapSeed <= 0 || mapSeed > 0xFFFFFFFF)
                     {
-                        if (_errorThrown) return null;
-
-                        _errorThrown = true;
-                        throw new Exception("Map seed is out of bounds.");
+                    return null;
                     }
                 }
 
@@ -162,10 +173,7 @@ namespace MapAssist.Helpers
 
                 if (!gameDifficulty.IsValid())
                 {
-                    if (_errorThrown) return null;
-
-                    _errorThrown = true;
-                    throw new Exception("Game difficulty out of bounds.");
+                    return null;
                 }
 
                 var areaLevel = levelId.Level(gameDifficulty);

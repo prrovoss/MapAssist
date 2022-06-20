@@ -4,6 +4,8 @@ using MapAssist.Files.Font;
 using MapAssist.Settings;
 using MapAssist.Structs;
 using MapAssist.Types;
+using PrroBot;
+using PrroBot.GameInteraction;
 using SharpDX;
 using SharpDX.Direct2D1;
 using System;
@@ -155,6 +157,204 @@ namespace MapAssist.Helpers
 
                 gamemaps.Add((gamemap, origin));
             }
+        }
+
+        internal void DrawCurrentPath(Graphics gfx)
+        {
+            List<Point> currentPath = Pathing.currentPath;
+            if (currentPath != null && currentPath.Count > 0)
+            {
+                Point prevPoint = MovePointInBounds(currentPath[0], _gameData.PlayerPosition);
+                for (var i = 1; i < currentPath.Count; i++)
+                {
+                    Point nextPoint = MovePointInBounds(currentPath[i], _gameData.PlayerPosition);
+
+                    DrawLineDirect(gfx, MapAssistConfiguration.Loaded.MapConfiguration.CurrentPath, prevPoint, nextPoint);
+                    prevPoint = nextPoint;
+                }
+            }
+        }
+
+        private void DrawLineDirect(Graphics gfx, PointOfInterestRendering rendering, Point startPosition, Point endPosition)
+        {
+            var renderTarget = gfx.GetRenderTarget();
+            var currentTransform = renderTarget.Transform;
+            renderTarget.Transform = Matrix3x2.Identity.ToDXMatrix();
+
+            startPosition = Vector2.Transform(startPosition.ToVector(), areaTransformMatrix).ToPoint();
+            endPosition = Vector2.Transform(endPosition.ToVector(), areaTransformMatrix).ToPoint();
+
+            var angle = endPosition.Subtract(startPosition).Angle();
+            var length = endPosition.Rotate(-angle, startPosition).X - startPosition.X;
+
+            var brush = CreateBrush(gfx, rendering.LineColor);
+
+            if (rendering.CanDrawArrowHead())
+            {
+                var points = new Point[]
+                {
+                    new Point((float)(Math.Sqrt(3) / -2), 0.5f),
+                    new Point((float)(Math.Sqrt(3) / -2), -0.5f),
+                    new Point(0, 0),
+                }.Select(point => point.Multiply(rendering.ArrowHeadSize).Rotate(angle).Add(endPosition)).ToArray(); // Divide by 2 to make the line end inside the triangle
+
+                endPosition = endPosition.Rotate(-angle, startPosition).Subtract(rendering.ArrowHeadSize / 2f, 0).Rotate(angle, startPosition); // Make the line end inside the triangle
+
+                gfx.DrawLine(brush, startPosition, endPosition, rendering.LineThickness);
+                gfx.FillTriangle(brush, points[0], points[1], points[2]);
+            }
+            else
+            {
+                gfx.DrawLine(brush, startPosition, endPosition, rendering.LineThickness);
+            }
+
+            renderTarget.Transform = currentTransform;
+        }
+
+        public void DrawBotStats(Graphics gfx)
+        {
+            // Setup
+            var font = MapAssistConfiguration.Loaded.GameInfo.LabelFont;
+            var fontSize = gfx.ScaleFontSize((float)MapAssistConfiguration.Loaded.GameInfo.LabelFontSize);
+            var textColor = Color.FromArgb(199, 179, 119);
+            var rect = Common.GetGameBounds();
+            var textAlign = TextAlign.Left;
+            var anchor = new Point(rect.Right * 0.75f, rect.Bottom*0.1f);
+
+            var text = "Bot running: " + BotStats.Running;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Total Runs: " + BotStats.TotalRuns + " (" + BotStats.TotalSuccessRate + "% Success)";
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Total Failed Runs: " + BotStats.TotalFailedRuns;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Chicken: " + BotStats.Chicken;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Deaths: " + BotStats.Deaths;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 40;
+
+            foreach (var run in BotStats.RunStats.Keys)
+            {
+                var stats = BotStats.RunStats[run];
+
+                text = (run == BotStats.CurrentRun) ? "--> " : "";
+
+                text += run.GetName();
+                DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+                anchor.Y += 20;
+
+                text = "\t Total: " + stats[0] + " (" + stats[2] + "% Success)";
+                DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+                anchor.Y += 20;
+
+                text = "\t Failed: " + stats[1];
+                DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+                anchor.Y += 20;
+            }
+        }
+
+        public void DrawDebugInfo(Graphics gfx)
+        {
+            var brush = CreateBrush(gfx, Color.Red);
+
+            var gameData = Core.GetGameData();
+            var areaData = Core.GetAreaData();
+
+            var playerVector = new Vector2(gameData.PlayerPosition.X, gameData.PlayerPosition.Y);
+
+            var itemsOnGround = gameData.AllItems.Where(i => i.ItemModeMapped == ItemModeMapped.Ground).ToList();
+
+            WindowBounds rect;
+            WindowHelper.GetWindowClientBounds(gameData.MainWindowHandle, out rect);
+
+            var menuData = Common.GetCurrentMenuData();
+
+            // Setup
+            var font = MapAssistConfiguration.Loaded.GameInfo.LabelFont;
+            var fontSize = gfx.ScaleFontSize((float)MapAssistConfiguration.Loaded.GameInfo.LabelFontSize);
+            var textAlign = MapAssistConfiguration.Loaded.GameInfo.Position == GameInfoPosition.TopRight ? TextAlign.Right : TextAlign.Left;
+            var textColor = Color.FromArgb(199, 179, 119);
+            var anchor = new Point(rect.Right / 3, 100);
+            var text = "Player Coord: " + gameData.PlayerPosition;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Player Mode: " + gameData.PlayerUnit.Mode;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            var cursorPos = Input.GetCursorPosition();
+
+            text = "Cursor Pos: " + cursorPos;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            var xOffset = cursorPos.X / rect.Right;
+            var yOffset = cursorPos.Y / rect.Bottom;
+
+            text = "Screen offsets: " + xOffset + ", " + yOffset;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "LastGameDataNull: " + Core.LastGameDataWasNull();
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "LastAreaDataNull: " + Core.LastAreaDataWasNull();
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Area: " + gameData.Area;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "MenuPanelOpen: " + menuData.IsAnyMenuOpen();
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "InGame: " + menuData.InGame;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "Map: " + menuData.Map;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "LoadingScreen: " + menuData.LoadingScreen;
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            text = "PlayerPos walkable: " + areaData.IsWalkableTile(gameData.PlayerPosition);
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            var point = new Point(gameData.PlayerPosition.X + 2, gameData.PlayerPosition.Y);
+            text = "PlayerPos + 2,0 walkable: " + areaData.IsWalkableTile(point);
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            point = new Point(gameData.PlayerPosition.X - 2, gameData.PlayerPosition.Y);
+            text = "PlayerPos + -2,0 walkable: " + areaData.IsWalkableTile(point);
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            point = new Point(gameData.PlayerPosition.X, gameData.PlayerPosition.Y + 2);
+            text = "PlayerPos + 0,2 walkable: " + areaData.IsWalkableTile(point);
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
+
+            point = new Point(gameData.PlayerPosition.X, gameData.PlayerPosition.Y - 2);
+            text = "PlayerPos + 0,-2 walkable: " + areaData.IsWalkableTile(point);
+            DrawText(gfx, anchor, text, font, fontSize, textColor, true, textAlign);
+            anchor.Y += 20;
         }
 
         public void DrawGamemap(Graphics gfx)

@@ -54,6 +54,8 @@ namespace MapAssist.Structs
         [FieldOffset(0x1D)] public bool Portraits;
         [MarshalAs(UnmanagedType.U1)]
         [FieldOffset(0x1E)] public bool MercenaryInventory;
+        [MarshalAs(UnmanagedType.U1)]
+        [FieldOffset(0x16C)] public bool LoadingScreen;
     }
 
     [StructLayout(LayoutKind.Explicit)]

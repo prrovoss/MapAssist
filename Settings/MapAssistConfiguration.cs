@@ -99,6 +99,9 @@ namespace MapAssist.Settings
         [YamlMember(Alias = "PreviousArea", ApplyNamingConventions = false)]
         public PointOfInterestRendering PreviousArea { get; set; }
 
+        [YamlMember(Alias = "CurrentPath", ApplyNamingConventions = false)]
+        public PointOfInterestRendering CurrentPath { get; set; }
+
         [YamlMember(Alias = "Waypoint", ApplyNamingConventions = false)]
         public PointOfInterestRendering Waypoint { get; set; }
 

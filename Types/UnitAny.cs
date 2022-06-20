@@ -23,6 +23,7 @@ namespace MapAssist.Types
         public DateTime FoundTime { get; set; } = DateTime.Now;
         public bool IsHovered { get; set; } = false;
         public bool IsCached { get; set; } = false;
+        public Mode Mode => Struct.Mode;        
         private Path Path { get; set; }
 
         public Dictionary<Stats.Stat, Dictionary<ushort, int>> StatLayers { get; private set; }
@@ -63,10 +64,13 @@ namespace MapAssist.Types
             {
                 using (var processContext = GameManager.GetProcessContext())
                 {
+                    if (processContext == null) return UpdateResult.InvalidUpdate;
                     var newStruct = processContext.Read<Structs.UnitAny>(PtrUnit);
 
                     if (newStruct.UnitId == uint.MaxValue) return UpdateResult.InvalidUpdate;
                     else Struct = newStruct;
+
+                    Path = new Path(Struct.pPath);
 
                     if (IsCached) return UpdateResult.Cached;
 
@@ -218,7 +222,7 @@ namespace MapAssist.Types
             get
             {
                 if (Struct.UnitType != UnitType.Monster) return false;
-                if (Struct.Mode == 0 || Struct.Mode == 12) return false;
+                if (Struct.Mode == Mode.Death || Struct.Mode == Mode.Kick) return false;
                 if (NPC.Dummies.ContainsKey(TxtFileNo)) return false;
                 if (StateList.Contains(State.Revive)) return false;
 
